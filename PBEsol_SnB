@@ -1,0 +1,121 @@
+&GLOBAL
+  PROJECT GaO
+  RUN_TYPE GEO_OPT
+  PRINT_LEVEL MEDIUM
+&END GLOBAL
+&FORCE_EVAL
+  METHOD Quickstep
+  STRESS_TENSOR ANALYTICAL
+   &DFT
+   BASIS_SET_FILE_NAME  ./BASIS_MOLOPT
+    #BASIS_SET_FILE_NAME ./BASIS_ADMM_MOLOPT
+    POTENTIAL_FILE_NAME  ./POTENTIAL
+    #WFN_RESTART_FILE_NAME ./GaO-RESTART.wfn
+    &MGRID
+      CUTOFF 600
+      REL_CUTOFF 60
+    &END MGRID
+
+    &QS
+    &END QS
+
+    &PRINT              ! section required to obtain the HOMO-LUMO gap.
+       &PDOS
+       ADD_LAST SYMBOLIC
+       NLUMO 50
+       &END PDOS
+       &MO_CUBES
+       ADD_LAST SYMBOLIC
+       NHOMO 1            ! but we require 1 HOMO and 1 LUMO  in the output
+       NLUMO 1            ! so that we get the band gap
+       &END
+    &END
+
+&SCF
+      SCF_GUESS ATOMIC
+     # SCF_GUESS RESTART
+      EPS_SCF 1.0E-6
+      MAX_SCF 300
+
+       #ADDED_MOS 30
+      #&SMEAR ON
+      #METHOD FERMI_DIRAC
+      #ELECTRONIC_TEMPERATURE [K] 300
+      #&END SMEAR
+
+      &OUTER_SCF
+      EPS_SCF 1.0E-6
+     # MAX_SCF 3
+      &END
+      &OT
+      MINIMIZER DIIS
+#     ENERGY_GAP 0.05
+#     PRECONDITIONER FULL_SINGLE_INVERSE
+      &END OT
+    &END SCF
+
+       &XC
+      &XC_FUNCTIONAL PBE
+       &PBE
+        PARAMETRIZATION PBESOL
+       &END PBE
+      &END XC_FUNCTIONAL
+    &END XC
+
+
+&END DFT
+  &SUBSYS
+    &TOPOLOGY
+      COORD_FILE_FORMAT XYZ
+      COORD_FILE_NAME GaO.xyz
+    &END TOPOLOGY
+    &CELL
+  &CELL 
+			CELL_FILE_FORMAT CIF
+			CELL_FILE_NAME structure.cif
+		&END CELL
+		&TOPOLOGY 
+			COORD_FILE_NAME structure.cif
+			COORD_FILE_FORMAT CIF
+		&END TOPOLOGY
+  &END CELL
+
+&KIND Ga
+      BASIS_SET  DZVP-MOLOPT-SR-GTH-q13
+      POTENTIAL  GTH-PBE-q13
+     # BASIS_SET AUX_FIT cFIT10
+    &END KIND
+    &KIND O
+      BASIS_SET DZVP-MOLOPT-SR-GTH-q6
+      POTENTIAL GTH-PBE-q6
+     # BASIS_SET AUX_FIT FIT9
+    &END KIND
+
+
+
+  &END SUBSYS
+&END FORCE_EVAL
+
+&MOTION
+   &GEO_OPT
+      OPTIMIZER LBFGS
+     #keep it simple
+   &END GEO_OPT
+&END MOTION
+
+
+#&MOTION
+  # &GEO_OPT
+     #keep it simple
+  # &END GEO_OPT
+ #  &CELL_OPT
+     #keep it simple
+  #   OPTIMIZER CG
+   #  &CG
+    #  &LINE_SEARCH
+     # &END LINE_SEARCH
+    # &END CG
+  # KEEP_ANGLES Y
+ # KEEP_SYMMETRY
+  # &END CELL_OPT
+#&END MOTION
